@@ -7,44 +7,62 @@
 
 import Foundation
 import UIKit
-import AlertKit
 
-final class CompilationsViewController: UIViewController {
-    
-    enum OutputEvent {
-        case didTapCompilation(Compilation)
-    }
-    
-    var onEvent: ((OutputEvent) -> Void)?
-    
-    private var compilations: [Compilation] = []
-    private var filtered: [Compilation] = []
-    private var isSearching = false
+final class CompilationViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     private let storage = UserDefaultsStorage()
-    private let storageKey = "compilations_storage"
+    private let storageKey: String = "compilations_storage"
+    private var compilation: Compilation
+    private var items: [CompilationItem]
+    private var pictureCounter: Int
     
     private let tableView = UITableView()
-    private let searchController = UISearchController(searchResultsController: nil)
+    
+    private lazy var toolbar: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.distribution = .fillEqually
+        stack.backgroundColor = .systemGroupedBackground
+        stack.addArrangedSubview(makeButton(title: "Text", action: #selector(addText)))
+        stack.addArrangedSubview(makeButton(title: "Link", action: #selector(addLink)))
+        stack.addArrangedSubview(makeButton(title: "Image", action: #selector(addImage)))
+        return stack
+    }()
+    
     private let emptyLabel: UILabel = {
         let label = UILabel()
-        label.text = "No Compilations..."
+        label.text = "No items..."
         label.textAlignment = .center
-        label.font = .systemFont(ofSize: 20, weight: .medium)
+        label.textColor = .secondaryLabel
         label.isHidden = true
         return label
     }()
     
+    init(compilation: Compilation?) {
+        if let compilation {
+            self.compilation = compilation
+            self.items = compilation.items
+            self.pictureCounter = compilation.items.filter {
+                if case .image = $0.content { return true }
+                return false
+            }.count + 1
+        } else {
+            let new = Compilation(name: "Compilation", items: [])
+            self.compilation = new
+            self.items = []
+            self.pictureCounter = 1
+        }
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Compilations"
+        title = compilation.name
         view.backgroundColor = .systemBackground
-        
-        navigationItem.rightBarButtonItem = .init(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd))
-        navigationItem.searchController = searchController
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search Compilations"
-        searchController.searchResultsUpdater = self
         
         tableView.frame = view.bounds
         tableView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -54,129 +72,171 @@ final class CompilationsViewController: UIViewController {
         
         view.addSubview(tableView)
         view.addSubview(emptyLabel)
+        setupToolbar()
+        setupEmptyLabel()
+        updateEmptyState()
+    }
+    
+    private func setupToolbar() {
+        view.addSubview(toolbar)
+        toolbar.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            toolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            toolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            toolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            toolbar.heightAnchor.constraint(equalToConstant: 60)
+        ])
+        tableView.contentInset.bottom = 60
+    }
+    
+    private func setupEmptyLabel() {
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             emptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             emptyLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
-        
-        loadCompilations()
-        updateEmptyView()
     }
     
-    private func loadCompilations() {
-        switch storage.load(forKey: storageKey, as: [Compilation].self) {
-        case .success(let loaded):
-            compilations = loaded
-        case .failure:
-            AlertKitAPI.present(
-                title: "Error",
-                subtitle: "Failed to load compilations.",
-                icon: .error,
-                style: .iOS17AppleMusic,
-                haptic: .error
-            )
-        }
+    private func updateEmptyState() {
+        emptyLabel.isHidden = !items.isEmpty
     }
     
-    private func saveCompilations() {
-        if let error = storage.save(compilations, forKey: storageKey) {
-            AlertKitAPI.present(
-                title: "Error",
-                subtitle: "Failed to save compilations.",
-                icon: .error,
-                style: .iOS17AppleMusic,
-                haptic: .error
-            )
-        }
+    private func makeButton(title: String, action: Selector) -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle(title, for: .normal)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 16)
+        button.addTarget(self, action: action, for: .touchUpInside)
+        return button
     }
     
-    private func updateEmptyView() {
-        emptyLabel.isHidden = !compilations.isEmpty
-    }
-    
-    @objc private func didTapAdd() {
-        let alert = UIAlertController(title: "New Compilation", message: "Enter name", preferredStyle: .alert)
-        alert.addTextField { $0.placeholder = "Name" }
-        
-        let addAction = UIAlertAction(title: "Add", style: .default) { [weak self] _ in
-            guard let self else { return }
-            let name = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            guard !name.isEmpty else {
-                AlertKitAPI.present(
-                    title: "Error",
-                    subtitle: "Compilation name cannot be empty.",
-                    icon: .error,
-                    style: .iOS17AppleMusic,
-                    haptic: .error
-                )
-                return
-            }
-            let newCompilation = Compilation(name: name, items: [])
-            self.compilations.insert(newCompilation, at: 0)
-            self.saveCompilations()
-            self.tableView.insertRows(at: [.init(row: 0, section: 0)], with: .automatic)
-            self.updateEmptyView()
-            AlertKitAPI.present(
-                title: "Added!",
-                subtitle: "\(name) has been added",
-                icon: .done,
-                style: .iOS17AppleMusic,
-                haptic: .success
-            )
-        }
-        
-        alert.addAction(addAction)
+    @objc private func addText() {
+        let alert = UIAlertController(title: "Add Text", message: nil, preferredStyle: .alert)
+        alert.addTextField { $0.placeholder = "Enter text" }
+        alert.addAction(.init(title: "Add", style: .default) { [weak self] _ in
+            guard let text = alert.textFields?.first?.text, !text.isEmpty else { return }
+            self?.addItem(.text(text), shouldSave: true)
+        })
         alert.addAction(.init(title: "Cancel", style: .cancel))
         present(alert, animated: true)
     }
-}
-
-extension CompilationsViewController: UITableViewDataSource, UITableViewDelegate {
+    
+    @objc private func addLink() {
+        let alert = UIAlertController(title: "Add Link", message: nil, preferredStyle: .alert)
+        alert.addTextField { $0.placeholder = "Enter URL" }
+        alert.addAction(.init(title: "Add", style: .default) { [weak self] _ in
+            guard let link = alert.textFields?.first?.text, !link.isEmpty else { return }
+            self?.addItem(.link(link), shouldSave: true)
+        })
+        alert.addAction(.init(title: "Cancel", style: .cancel))
+        present(alert, animated: true)
+    }
+    
+    @objc private func addImage() {
+        let picker = UIImagePickerController()
+        picker.delegate = self
+        picker.sourceType = .photoLibrary
+        present(picker, animated: true)
+    }
+    
+    private func addItem(_ data: CompilationItemData, shouldSave: Bool) {
+        let item = CompilationItem(
+            id: UUID(),
+            name: makeItemName(for: data),
+            content: data
+        )
+        items.append(item)
+        tableView.insertRows(at: [IndexPath(row: items.count - 1, section: 0)], with: .automatic)
+        updateEmptyState()
+        
+        if shouldSave {
+            compilation = Compilation(name: compilation.name, items: items)
+            update()
+        }
+    }
+    
+    private func update() {
+        switch storage.load(forKey: storageKey, as: [Compilation].self) {
+        case .success(var all):
+            all.removeAll { $0.name == compilation.name }
+            all.insert(compilation, at: 0)
+            _ = storage.save(all, forKey: storageKey)
+        case .failure(let error):
+            if error == .noData {
+                let all = [compilation]
+                _ = storage.save(all, forKey: storageKey)
+            }
+        }
+    }
+    
+    private func makeItemName(for data: CompilationItemData) -> String {
+        switch data {
+        case .text(let str): return str
+        case .link(let url): return url
+        case .image: let name = "picture\(pictureCounter)"; pictureCounter += 1; return name
+        }
+    }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        isSearching ? filtered.count : compilations.count
+        items.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let model = isSearching ? filtered[indexPath.row] : compilations[indexPath.row]
+        let item = items[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        var config = cell.defaultContentConfiguration()
-        config.text = model.name
-        cell.contentConfiguration = config
+        var content = cell.defaultContentConfiguration()
+        content.text = item.name
+        content.image = icon(for: item.content)
+        cell.contentConfiguration = content
         cell.accessoryType = .disclosureIndicator
         return cell
     }
     
+    private func icon(for data: CompilationItemData) -> UIImage? {
+        switch data {
+        case .text: return UIImage(systemName: "text.alignleft")
+        case .link: return UIImage(systemName: "link")
+        case .image: return UIImage(systemName: "photo")
+        }
+    }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let model = isSearching ? filtered[indexPath.row] : compilations[indexPath.row]
-        onEvent?(.didTapCompilation(model))
+        let item = items[indexPath.row]
         tableView.deselectRow(at: indexPath, animated: true)
+        switch item.content {
+        case .link(let str):
+            if let url = URL(string: str) {
+                UIApplication.shared.open(url)
+            }
+        case .image(let image):
+            let vc = UIViewController()
+            vc.view.backgroundColor = .black
+            let imageView = UIImageView(image: image)
+            imageView.contentMode = .scaleAspectFit
+            imageView.frame = vc.view.bounds
+            imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            vc.view.addSubview(imageView)
+            present(vc, animated: true)
+        case .text:
+            break
+        }
     }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool { true }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        guard editingStyle == .delete else { return }
-        let index = indexPath.row
-        var targetArray = isSearching ? filtered : compilations
-        let deleted = targetArray.remove(at: index)
-        
-        if !isSearching {
-            compilations.removeAll { $0.name == deleted.name }
-            saveCompilations()
+        if editingStyle == .delete {
+            items.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            updateEmptyState()
+            compilation = Compilation(name: compilation.name, items: items)
+            update()
         }
-        
-        tableView.deleteRows(at: [indexPath], with: .automatic)
-        updateEmptyView()
     }
-}
-
-extension CompilationsViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        let text = searchController.searchBar.text ?? ""
-        isSearching = !text.isEmpty
-        filtered = compilations.filter { $0.name.lowercased().contains(text.lowercased()) }
-        tableView.reloadData()
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true)
+        if let image = info[.originalImage] as? UIImage {
+            addItem(.image(image), shouldSave: true)
+        }
     }
 }

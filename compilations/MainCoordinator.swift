@@ -14,7 +14,13 @@ final class MainCoordinator: Coordinatable {
     override func startCoordinator() {
         let compilationsVC = CompilationsViewController()
         compilationsVC.onEvent = {
-            event in
+            [weak self] event in
+            guard let self = self else { return }
+            switch event {
+            case .didTapCompilation(let compilation):
+                navigationController.pushViewController(CompilationViewController(compilation: compilation), animated: true)
+            default: break
+            }
         }
         navigationController.pushViewController(compilationsVC, animated: false)
     }

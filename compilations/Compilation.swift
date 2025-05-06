@@ -8,9 +8,18 @@
 import Foundation
 import UIKit
 
-struct Compilation: Codable {
+struct Compilation: Codable, Equatable, Identifiable {
+    static func == (lhs: Compilation, rhs: Compilation) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    let id: UUID = UUID()
     let name: String
     let items: [CompilationItem]
+    
+    func updated(with items: [CompilationItem]) -> Compilation {
+        Compilation(name: name, items: items)
+    }
 }
 
 struct CompilationItem: Codable {
@@ -21,45 +30,51 @@ struct CompilationItem: Codable {
 
 enum CompilationItemData: Codable {
     case link(String)
-    case image(Data)
+    case image(UIImage)
     case text(String)
-
+    
     private enum CodingKeys: String, CodingKey {
         case type
         case value
     }
-
+    
     private enum DataType: String, Codable {
         case link
         case image
         case text
     }
-
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(DataType.self, forKey: .type)
-
+        
         switch type {
         case .link:
             let value = try container.decode(String.self, forKey: .value)
             self = .link(value)
         case .image:
-            let value = try container.decode(Data.self, forKey: .value)
-            self = .image(value)
+            let data = try container.decode(Data.self, forKey: .value)
+            guard let image = UIImage(data: data) else {
+                throw DecodingError.dataCorruptedError(forKey: .value, in: container, debugDescription: "Invalid image data")
+            }
+            self = .image(image)
         case .text:
             let value = try container.decode(String.self, forKey: .value)
             self = .text(value)
         }
     }
-
+    
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-
+        
         switch self {
         case .link(let value):
             try container.encode(DataType.link, forKey: .type)
             try container.encode(value, forKey: .value)
-        case .image(let data):
+        case .image(let image):
+            guard let data = image.jpegData(compressionQuality: 0.9) else {
+                throw EncodingError.invalidValue(image, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Failed to encode UIImage"))
+            }
             try container.encode(DataType.image, forKey: .type)
             try container.encode(data, forKey: .value)
         case .text(let value):
