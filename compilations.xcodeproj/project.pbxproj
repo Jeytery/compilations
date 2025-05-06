@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3E99B3232DCA5D130047998D /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3E99B3222DCA5D130047998D /* AlertKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		3EBD78652D900FDE0059E2F0 /* compilations.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = compilations.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3E99B3232DCA5D130047998D /* AlertKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = compilations;
 			packageProductDependencies = (
+				3E99B3222DCA5D130047998D /* AlertKit */,
 			);
 			productName = compilations;
 			productReference = 3EBD78652D900FDE0059E2F0 /* compilations.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = 3EBD785C2D900FDE0059E2F0;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3E99B3212DCA5D130047998D /* XCRemoteSwiftPackageReference "AlertKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3EBD78662D900FDE0059E2F0 /* Products */;
 			projectDirPath = "";
@@ -148,11 +157,13 @@
 				DEVELOPMENT_TEAM = R24W57U338;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = compilations/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Compilations;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -176,11 +187,13 @@
 				DEVELOPMENT_TEAM = R24W57U338;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = compilations/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Compilations;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -335,6 +348,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3E99B3212DCA5D130047998D /* XCRemoteSwiftPackageReference "AlertKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparrowcode/AlertKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.9;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3E99B3222DCA5D130047998D /* AlertKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3E99B3212DCA5D130047998D /* XCRemoteSwiftPackageReference "AlertKit" */;
+			productName = AlertKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3EBD785D2D900FDE0059E2F0 /* Project object */;
 }
