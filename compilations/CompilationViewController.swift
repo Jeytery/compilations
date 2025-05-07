@@ -11,7 +11,7 @@ import UIKit
 final class CompilationViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     private let storage = UserDefaultsStorage()
-    private let storageKey: String = "compilations_storage"
+    private let storageKey: String = "group.com.jeytery.compilation"
     private var compilation: Compilation
     private var items: [CompilationItem]
     private var pictureCounter: Int

@@ -7,48 +7,32 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "281914A0-45EC-4B77-8F11-435BDA8CDEB8"
+            uuid = "84DE8A72-6C41-4AE0-B7C6-161F7A9EDA63"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "compilations/UserDefaultsStorage.swift"
+            filePath = "CompilationsShareExtension/ShareViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "46"
-            endingLineNumber = "46"
-            landmarkName = "update(object:inArrayForKey:)"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
+            landmarkName = "loadSharedURL()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "9E326A1B-D606-4698-ADEA-05197A20AEAF"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "compilations/UserDefaultsStorage.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "38"
-            endingLineNumber = "38"
-            landmarkName = "load(forKey:as:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "7DA14E39-2DB9-4441-BDEC-1774FFF273FC"
+            uuid = "42DFA414-62F7-439B-9D77-3BA70B89DDAE"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "compilations/UserDefaultsStorage.swift"
+            filePath = "CompilationsShareExtension/ShareViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "49"
-            endingLineNumber = "49"
-            landmarkName = "update(object:inArrayForKey:)"
+            startingLineNumber = "58"
+            endingLineNumber = "58"
+            landmarkName = "loadCompilations()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

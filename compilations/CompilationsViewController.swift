@@ -22,7 +22,7 @@ final class CompilationsViewController: UIViewController {
     private var isSearching = false
     
     private let storage = UserDefaultsStorage()
-    private let storageKey = "compilations_storage"
+    private let storageKey = "group.com.jeytery.compilation"
     
     private let tableView = UITableView()
     private let searchController = UISearchController(searchResultsController: nil)

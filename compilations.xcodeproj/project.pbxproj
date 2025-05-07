@@ -8,13 +8,61 @@
 
 /* Begin PBXBuildFile section */
 		3E99B3232DCA5D130047998D /* AlertKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3E99B3222DCA5D130047998D /* AlertKit */; };
+		3E99B3342DCAA6300047998D /* CompilationsShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3E99B32A2DCAA6300047998D /* CompilationsShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		3E99B3322DCAA6300047998D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3EBD785D2D900FDE0059E2F0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3E99B3292DCAA6300047998D;
+			remoteInfo = CompilationsShareExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3E99B3392DCAA6300047998D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3E99B3342DCAA6300047998D /* CompilationsShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		3E99B32A2DCAA6300047998D /* CompilationsShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CompilationsShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3EBD78652D900FDE0059E2F0 /* compilations.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = compilations.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3E99B3382DCAA6300047998D /* Exceptions for "CompilationsShareExtension" folder in "CompilationsShareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3E99B3292DCAA6300047998D /* CompilationsShareExtension */;
+		};
+		3E99B33B2DCBE4F80047998D /* Exceptions for "compilations" folder in "CompilationsShareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Compilation.swift,
+				UserDefaultsStorage.swift,
+			);
+			target = 3E99B3292DCAA6300047998D /* CompilationsShareExtension */;
+		};
+		3E99B33D2DCBE50A0047998D /* Exceptions for "CompilationsShareExtension" folder in "compilations" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ShareViewController.swift,
+			);
+			target = 3EBD78642D900FDE0059E2F0 /* compilations */;
+		};
 		3EBD78772D900FE00059E2F0 /* Exceptions for "compilations" folder in "compilations" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -25,10 +73,20 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		3E99B32B2DCAA6300047998D /* CompilationsShareExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3E99B33D2DCBE50A0047998D /* Exceptions for "CompilationsShareExtension" folder in "compilations" target */,
+				3E99B3382DCAA6300047998D /* Exceptions for "CompilationsShareExtension" folder in "CompilationsShareExtension" target */,
+			);
+			path = CompilationsShareExtension;
+			sourceTree = "<group>";
+		};
 		3EBD78672D900FDE0059E2F0 /* compilations */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				3EBD78772D900FE00059E2F0 /* Exceptions for "compilations" folder in "compilations" target */,
+				3E99B33B2DCBE4F80047998D /* Exceptions for "compilations" folder in "CompilationsShareExtension" target */,
 			);
 			path = compilations;
 			sourceTree = "<group>";
@@ -36,6 +94,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3E99B3272DCAA6300047998D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3EBD78622D900FDE0059E2F0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -51,6 +116,7 @@
 			isa = PBXGroup;
 			children = (
 				3EBD78672D900FDE0059E2F0 /* compilations */,
+				3E99B32B2DCAA6300047998D /* CompilationsShareExtension */,
 				3EBD78662D900FDE0059E2F0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,6 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				3EBD78652D900FDE0059E2F0 /* compilations.app */,
+				3E99B32A2DCAA6300047998D /* CompilationsShareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -66,6 +133,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3E99B3292DCAA6300047998D /* CompilationsShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3E99B3352DCAA6300047998D /* Build configuration list for PBXNativeTarget "CompilationsShareExtension" */;
+			buildPhases = (
+				3E99B3262DCAA6300047998D /* Sources */,
+				3E99B3272DCAA6300047998D /* Frameworks */,
+				3E99B3282DCAA6300047998D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3E99B32B2DCAA6300047998D /* CompilationsShareExtension */,
+			);
+			name = CompilationsShareExtension;
+			packageProductDependencies = (
+			);
+			productName = CompilationsShareExtension;
+			productReference = 3E99B32A2DCAA6300047998D /* CompilationsShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		3EBD78642D900FDE0059E2F0 /* compilations */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3EBD78782D900FE00059E2F0 /* Build configuration list for PBXNativeTarget "compilations" */;
@@ -73,10 +162,12 @@
 				3EBD78612D900FDE0059E2F0 /* Sources */,
 				3EBD78622D900FDE0059E2F0 /* Frameworks */,
 				3EBD78632D900FDE0059E2F0 /* Resources */,
+				3E99B3392DCAA6300047998D /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3E99B3332DCAA6300047998D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				3EBD78672D900FDE0059E2F0 /* compilations */,
@@ -99,6 +190,9 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					3E99B3292DCAA6300047998D = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					3EBD78642D900FDE0059E2F0 = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -122,11 +216,19 @@
 			projectRoot = "";
 			targets = (
 				3EBD78642D900FDE0059E2F0 /* compilations */,
+				3E99B3292DCAA6300047998D /* CompilationsShareExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3E99B3282DCAA6300047998D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3EBD78632D900FDE0059E2F0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,6 +239,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3E99B3262DCAA6300047998D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3EBD78612D900FDE0059E2F0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -146,12 +255,73 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		3E99B3332DCAA6300047998D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3E99B3292DCAA6300047998D /* CompilationsShareExtension */;
+			targetProxy = 3E99B3322DCAA6300047998D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		3E99B3362DCAA6300047998D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CompilationsShareExtension/CompilationsShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R24W57U338;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CompilationsShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CompilationsShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Jeytery.compilations.CompilationsShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3E99B3372DCAA6300047998D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CompilationsShareExtension/CompilationsShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R24W57U338;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CompilationsShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CompilationsShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Jeytery.compilations.CompilationsShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		3EBD78792D900FE00059E2F0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = compilations/compilations.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = R24W57U338;
@@ -182,6 +352,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = compilations/compilations.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = R24W57U338;
@@ -329,6 +500,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3E99B3352DCAA6300047998D /* Build configuration list for PBXNativeTarget "CompilationsShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E99B3362DCAA6300047998D /* Debug */,
+				3E99B3372DCAA6300047998D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		3EBD78602D900FDE0059E2F0 /* Build configuration list for PBXProject "compilations" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
