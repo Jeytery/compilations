@@ -16,29 +16,73 @@ final class ShareViewController: UIViewController, UITableViewDataSource, UITabl
     private var compilations: [Compilation] = []
     private var sharedURL: String?
     
-    private let tableView = UITableView()
+    private let tableView = UITableView(frame: .zero, style: .grouped)
+    private let navBarHeight: CGFloat = 56
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
+        setupNavigationEmulation()
         loadSharedURL()
         loadCompilations()
-        
+    }
+
+    private func setupNavigationEmulation() {
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
+        blur.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(blur)
         
         let label = UILabel()
-        label.text = "share test"
-        view.addSubview(label)
+        label.text = "Select a compilation to save"
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
+        blur.contentView.addSubview(label)
+        
+        let closeButton = UIButton(type: .system)
+        let icon = UIImage(systemName: "xmark")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))
+        closeButton.setImage(icon, for: .normal)
+        closeButton.tintColor = .systemGray
+        closeButton.backgroundColor = .label.withAlphaComponent(0.1)
+        closeButton.layer.cornerRadius = 28 / 2
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        blur.contentView.addSubview(closeButton)
+
+        let separator = UIView()
+        separator.backgroundColor = UIColor.separator
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        blur.contentView.addSubview(separator)
+        
         NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            blur.topAnchor.constraint(equalTo: view.topAnchor),
+            blur.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            blur.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            blur.heightAnchor.constraint(equalToConstant: navBarHeight),
+            
+            closeButton.leadingAnchor.constraint(equalTo: blur.leadingAnchor, constant: 12),
+            closeButton.centerYAnchor.constraint(equalTo: blur.centerYAnchor),
+            closeButton.widthAnchor.constraint(equalToConstant: 28),
+            closeButton.heightAnchor.constraint(equalToConstant: 28),
+
+            label.centerXAnchor.constraint(equalTo: blur.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: blur.centerYAnchor),
+
+            separator.heightAnchor.constraint(equalToConstant: 0.5),
+            separator.leadingAnchor.constraint(equalTo: blur.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: blur.trailingAnchor),
+            separator.bottomAnchor.constraint(equalTo: blur.bottomAnchor)
         ])
     }
+
+    @objc private func closeTapped() {
+        extensionContext?.cancelRequest(withError: NSError(domain: "UserCanceled", code: 0, userInfo: nil))
+    }
+
 
     private func loadSharedURL() {
         guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem else { return }
         guard let attachments = extensionItem.attachments else { return }
-
         for attachment in attachments {
             if attachment.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
                 attachment.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { [weak self] (data, _) in
@@ -67,6 +111,8 @@ final class ShareViewController: UIViewController, UITableViewDataSource, UITabl
     private func setupTableView() {
         view.addSubview(tableView)
         tableView.frame = view.bounds
+        tableView.contentInset = .init(top: navBarHeight, left: 0, bottom: 0, right: 0)
+        tableView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -81,6 +127,7 @@ final class ShareViewController: UIViewController, UITableViewDataSource, UITabl
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         var config = cell.defaultContentConfiguration()
         config.text = compilation.name
+        cell.accessoryType = .disclosureIndicator
         cell.contentConfiguration = config
         return cell
     }
