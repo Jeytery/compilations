@@ -59,9 +59,31 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         fatalError("init(coder:) has not been implemented")
     }
     
+    private func getButton(title: String) -> UIButton {
+        var config = UIButton.Configuration.filled()
+        config.image = UIImage(systemName: "ellipsis.circle")
+        config.imagePadding = 6
+        config.baseForegroundColor = .systemBlue
+        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+        config.attributedTitle = AttributedString(
+            title,
+            attributes: .init([
+                .font: UIFont.systemFont(ofSize: 16, weight: .medium)
+            ])
+        )
+        config.titleAlignment = .center
+        config.imagePlacement = .trailing
+        config.baseBackgroundColor = .clear
+        let buttonRef = UIButton(configuration: config)
+        return buttonRef
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = compilation.name
+        
+        let titleButton = getButton(title: compilation.name)
+        titleButton.addTarget(self, action: #selector(didTapTitle), for: .touchUpInside)
+        navigationItem.titleView = titleButton
         view.backgroundColor = .systemBackground
         
         tableView.frame = view.bounds
@@ -75,6 +97,26 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         setupToolbar()
         setupEmptyLabel()
         updateEmptyState()
+    }
+    
+    @objc private func didTapTitle() {
+        let alert = UIAlertController(title: "Edit Title", message: nil, preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.text = self.compilation.name
+            textField.placeholder = "Enter new title"
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
+            guard let self = self,
+                  let newName = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !newName.isEmpty else { return }
+            self.compilation = Compilation(name: newName, items: self.items)
+            self.update()
+            if let titleButton = self.navigationItem.titleView as? UIButton {
+                titleButton.setTitle(newName + " ", for: .normal)
+            }
+        }))
+        present(alert, animated: true)
     }
     
     private func setupToolbar() {
@@ -189,7 +231,7 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
             switch item.content {
             case .link(let link):
                 content.text = link
-            default: break 
+            default: break
             }
         }
         content.image = icon(for: item.content)
@@ -304,3 +346,4 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         present(nav, animated: true)
     }
 }
+
