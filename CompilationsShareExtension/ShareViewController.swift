@@ -137,7 +137,7 @@ final class ShareViewController: UIViewController, UITableViewDataSource, UITabl
 
         let selected = compilations[indexPath.row]
         let updated = Compilation(name: selected.name, items: selected.items + [
-            CompilationItem(id: UUID(), name: url, content: .link(url))
+            CompilationItem(id: UUID(), name: nil, content: .link(url))
         ])
 
         compilations.removeAll { $0.name == selected.name }

@@ -14,7 +14,7 @@ struct Compilation: Codable, Equatable, Identifiable {
     }
     
     let id: UUID = UUID()
-    let name: String
+    var name: String
     let items: [CompilationItem]
     
     func updated(with items: [CompilationItem]) -> Compilation {
@@ -24,7 +24,7 @@ struct Compilation: Codable, Equatable, Identifiable {
 
 struct CompilationItem: Codable {
     let id: UUID
-    let name: String
+    let name: String?
     let content: CompilationItemData
 }
 

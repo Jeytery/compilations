@@ -168,10 +168,10 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         }
     }
     
-    private func makeItemName(for data: CompilationItemData) -> String {
+    private func makeItemName(for data: CompilationItemData) -> String? {
         switch data {
         case .text(let str): return str
-        case .link(let url): return url
+        case .link(let url): return nil
         case .image: let name = "picture\(pictureCounter)"; pictureCounter += 1; return name
         }
     }
@@ -185,6 +185,13 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         var content = cell.defaultContentConfiguration()
         content.text = item.name
+        if item.name == nil {
+            switch item.content {
+            case .link(let link):
+                content.text = link
+            default: break 
+            }
+        }
         content.image = icon(for: item.content)
         cell.contentConfiguration = content
         cell.accessoryType = .disclosureIndicator
@@ -238,5 +245,62 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         if let image = info[.originalImage] as? UIImage {
             addItem(.image(image), shouldSave: true)
         }
+    }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let item = items[indexPath.row]
+        guard case .link = item.content else { return nil }
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            guard let self else { return nil }
+            let edit = UIAction(title: "Edit", image: UIImage(systemName: "pencil")) { _ in
+                self.presentEditLinkController(for: indexPath)
+            }
+            let delete = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
+                self.items.remove(at: indexPath.row)
+                self.compilation = Compilation(name: self.compilation.name, items: self.items)
+                self.update()
+                self.tableView.deleteRows(at: [indexPath], with: .automatic)
+                self.updateEmptyState()
+            }
+            return UIMenu(title: "", children: [edit, delete])
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let item = items[indexPath.row]
+        guard case .link = item.content else { return nil }
+        
+        let edit = UIContextualAction(style: .normal, title: "Edit") { [weak self] _, _, completion in
+            self?.presentEditLinkController(for: indexPath)
+            completion(true)
+        }
+        
+        let delete = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completion in
+            self?.items.remove(at: indexPath.row)
+            self?.compilation = Compilation(name: self?.compilation.name ?? "", items: self?.items ?? [])
+            self?.update()
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            self?.updateEmptyState()
+            completion(true)
+        }
+        
+        return UISwipeActionsConfiguration(actions: [delete, edit])
+    }
+    
+    private func presentEditLinkController(for indexPath: IndexPath) {
+        let item = items[indexPath.row]
+        guard case .link(let url) = item.content else { return }
+
+        let editVC = EditLinkViewController(name: item.name ?? "", link: url) { [weak self] name, link in
+            guard let self else { return }
+            let updated = CompilationItem(id: item.id, name: name, content: .link(link))
+            self.items[indexPath.row] = updated
+            self.compilation = Compilation(name: self.compilation.name, items: self.items)
+            self.update()
+            self.tableView.reloadRows(at: [indexPath], with: .automatic)
+        }
+
+        let nav = UINavigationController(rootViewController: editVC)
+        present(nav, animated: true)
     }
 }

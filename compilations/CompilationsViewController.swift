@@ -61,13 +61,28 @@ final class CompilationsViewController: UIViewController {
         
         loadCompilations()
         updateEmptyView()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func appDidBecomeActive() {
+        loadCompilations()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadCompilations()
     }
-    
+
     private func loadCompilations() {
         switch storage.load(forKey: storageKey, as: [Compilation].self) {
         case .success(let loaded):
@@ -134,6 +149,29 @@ final class CompilationsViewController: UIViewController {
         alert.addAction(.init(title: "Cancel", style: .cancel))
         present(alert, animated: true)
     }
+    
+    private func editItem(at indexPath: IndexPath) {
+        let model = isSearching ? filtered[indexPath.row] : compilations[indexPath.row]
+        
+        let alert = UIAlertController(title: "Edit Compilation", message: "Change name", preferredStyle: .alert)
+        alert.addTextField { $0.text = model.name }
+        
+        let saveAction = UIAlertAction(title: "Save", style: .default) { [weak self] _ in
+            guard let self,
+                  let newName = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !newName.isEmpty else { return }
+            
+            if let i = self.compilations.firstIndex(where: { $0.name == model.name }) {
+                self.compilations[i].name = newName
+                self.saveCompilations()
+                self.tableView.reloadRows(at: [IndexPath(row: i, section: 0)], with: .automatic)
+            }
+        }
+        
+        alert.addAction(saveAction)
+        alert.addAction(.init(title: "Cancel", style: .cancel))
+        present(alert, animated: true)
+    }
 }
 
 extension CompilationsViewController: UITableViewDataSource, UITableViewDelegate {
@@ -173,6 +211,15 @@ extension CompilationsViewController: UITableViewDataSource, UITableViewDelegate
         
         tableView.deleteRows(at: [indexPath], with: .automatic)
         updateEmptyView()
+    }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            let edit = UIAction(title: "Edit", image: UIImage(systemName: "pencil")) { _ in
+                self?.editItem(at: indexPath)
+            }
+            return UIMenu(title: "", children: [edit])
+        }
     }
 }
 
