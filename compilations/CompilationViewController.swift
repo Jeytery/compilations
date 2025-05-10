@@ -18,15 +18,43 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
     
     private let tableView = UITableView()
     
-    private lazy var toolbar: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually
-        stack.backgroundColor = .systemGroupedBackground
-        stack.addArrangedSubview(makeButton(title: "Text", action: #selector(addText)))
-        stack.addArrangedSubview(makeButton(title: "Link", action: #selector(addLink)))
-        stack.addArrangedSubview(makeButton(title: "Image", action: #selector(addImage)))
-        return stack
+    private let toolBarHeight: CGFloat = 100
+    
+    private lazy var toolbar: FakeToolBar = {
+        let toolbar = FakeToolBar(blurStyle: .regular, style: .flyingCapsule)
+
+        let label = UILabel()
+        label.text = "Add content:"
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.textAlignment = .left
+
+        let buttons = UIStackView()
+        buttons.axis = .horizontal
+        buttons.spacing = 16
+        buttons.distribution = .fillEqually
+        buttons.alignment = .fill
+        buttons.addArrangedSubview(makeButton(title: "Text", imageName: "text.alignleft", action: #selector(addText)))
+        buttons.addArrangedSubview(makeButton(title: "Link", imageName: "link", action: #selector(addLink)))
+        buttons.addArrangedSubview(makeButton(title: "Image", imageName: "photo", action: #selector(addImage)))
+
+        let contentStack = UIStackView(arrangedSubviews: [label, buttons])
+        contentStack.axis = .vertical
+        contentStack.spacing = 12
+        contentStack.alignment = .fill
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+
+        toolbar.addSubview(contentStack)
+
+        NSLayoutConstraint.activate([
+            contentStack.topAnchor.constraint(equalTo: toolbar.topAnchor, constant: 12),
+            contentStack.bottomAnchor.constraint(equalTo: toolbar.bottomAnchor, constant: -12),
+            contentStack.leadingAnchor.constraint(equalTo: toolbar.leadingAnchor, constant: 16),
+            contentStack.trailingAnchor.constraint(equalTo: toolbar.trailingAnchor, constant: -16),
+        ])
+
+        return toolbar
     }()
     
     private let emptyLabel: UILabel = {
@@ -123,12 +151,12 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         view.addSubview(toolbar)
         toolbar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            toolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            toolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            toolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
+            toolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
             toolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            toolbar.heightAnchor.constraint(equalToConstant: 60)
+            toolbar.heightAnchor.constraint(equalToConstant: toolBarHeight)
         ])
-        tableView.contentInset.bottom = 60
+        tableView.contentInset.bottom = toolBarHeight + 20
     }
     
     private func setupEmptyLabel() {
@@ -143,10 +171,24 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         emptyLabel.isHidden = !items.isEmpty
     }
     
-    private func makeButton(title: String, action: Selector) -> UIButton {
-        let button = UIButton(type: .system)
-        button.setTitle(title, for: .normal)
-        button.titleLabel?.font = .boldSystemFont(ofSize: 16)
+    private func makeButton(title: String, imageName: String, action: Selector) -> UIButton {
+        var config = UIButton.Configuration.filled()
+        config.title = title
+        // Use a smaller SF Symbol icon size
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        config.image = UIImage(systemName: imageName)?.withConfiguration(symbolConfig)
+        config.imagePlacement = .leading
+        config.imagePadding = 8
+        config.baseBackgroundColor = UIColor.systemBlue.withAlphaComponent(0.15)
+        config.baseForegroundColor = .systemBlue
+        config.cornerStyle = .capsule
+        config.titleAlignment = .center
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var newAttributes = attributes
+            newAttributes.font = UIFont.boldSystemFont(ofSize: 16)
+            return newAttributes
+        }
+        let button = UIButton(configuration: config)
         button.addTarget(self, action: action, for: .touchUpInside)
         return button
     }
@@ -346,4 +388,3 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         present(nav, animated: true)
     }
 }
-
