@@ -8,40 +8,45 @@
 import Foundation
 
 enum UserDefaultsStorageError: Error {
-    case encodingFailed
-    case decodingFailed
     case noData
+    case decodeFailed
+    case encodeFailed
 }
 
 final class UserDefaultsStorage {
-    private let defaults: UserDefaults
-
-    init(appGroupID: String = "group.com.jeytery.compilations") {
-        guard let defaults = UserDefaults(suiteName: appGroupID) else {
-            fatalError("Unable to access shared UserDefaults")
-        }
-        self.defaults = defaults
-    }
-
-    func save<T: Codable>(_ value: T, forKey key: String) -> UserDefaultsStorageError? {
-        do {
-            let data = try JSONEncoder().encode(value)
-            defaults.set(data, forKey: key)
-            return nil
-        } catch {
-            return .encodingFailed
-        }
-    }
-
-    func load<T: Codable>(forKey key: String, as type: T.Type) -> Result<T, UserDefaultsStorageError> {
+    private let defaults = UserDefaults(suiteName: "group.com.jeytery.compilations")!
+    private let key = "group.com.jeytery.compilations"
+   
+    func load() -> Result<[Compilation], UserDefaultsStorageError> {
         guard let data = defaults.data(forKey: key) else {
             return .failure(.noData)
         }
+
         do {
-            let value = try JSONDecoder().decode(T.self, from: data)
-            return .success(value)
+            let result = try JSONDecoder().decode([Compilation].self, from: data)
+            return .success(result)
         } catch {
-            return .failure(.decodingFailed)
+            return .failure(.decodeFailed)
+        }
+    }
+
+    func save(_ compilations: [Compilation]) -> UserDefaultsStorageError? {
+        do {
+            let data = try JSONEncoder().encode(compilations)
+            defaults.set(data, forKey: key)
+            return nil
+        } catch {
+            return .encodeFailed
+        }
+    }
+    
+    func update(compilation: Compilation) {
+        switch load() {
+        case .success(let all):
+            var filtered = all.filter({ $0.id != compilation.id })
+            filtered.insert(compilation, at: 0)
+            _ = save(filtered)
+        case .failure(let error): break
         }
     }
 }

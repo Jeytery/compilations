@@ -6,6 +6,10 @@
 	<dict>
 		<key>NSExtensionAttributes</key>
 		<dict>
+			<key>NSExtensionActivationSupportsText</key>
+			<string>1</string>
+			<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+			<string>1</string>
 			<key>NSExtensionActivationRule</key>
 			<string>TRUEPREDICATE</string>
 			<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>

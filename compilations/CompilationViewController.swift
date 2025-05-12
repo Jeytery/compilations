@@ -11,7 +11,7 @@ import UIKit
 final class CompilationViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     private let storage = UserDefaultsStorage()
-    private let storageKey: String = "group.com.jeytery.compilation"
+    private let storageKey: String = "group.com.jeytery.compilations"
     private var compilation: Compilation
     private var items: [CompilationItem]
     private var pictureCounter: Int
@@ -125,6 +125,30 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         setupToolbar()
         setupEmptyLabel()
         updateEmptyState()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func appDidBecomeActive() {
+        switch storage.load() {
+        case .success(let all):
+            if let first = all.first(where: { $0.id == compilation.id }) {
+                self.compilation = first
+                updateEmptyState()
+                self.items = compilation.items
+                tableView.reloadData()
+            }
+        case .failure(_): break
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     
     @objc private func didTapTitle() {
@@ -139,7 +163,7 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
                   let newName = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !newName.isEmpty else { return }
             self.compilation = Compilation(name: newName, items: self.items)
-            self.update()
+            self.storage.update(compilation: compilation)
             if let titleButton = self.navigationItem.titleView as? UIButton {
                 titleButton.setTitle(newName + " ", for: .normal)
             }
@@ -233,25 +257,11 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         updateEmptyState()
         
         if shouldSave {
-            compilation = Compilation(name: compilation.name, items: items)
-            update()
+            self.compilation = self.compilation.updated(items: self.items)
+            self.storage.update(compilation: self.compilation)
         }
     }
-    
-    private func update() {
-        switch storage.load(forKey: storageKey, as: [Compilation].self) {
-        case .success(var all):
-            all.removeAll { $0.name == compilation.name }
-            all.insert(compilation, at: 0)
-            _ = storage.save(all, forKey: storageKey)
-        case .failure(let error):
-            if error == .noData {
-                let all = [compilation]
-                _ = storage.save(all, forKey: storageKey)
-            }
-        }
-    }
-    
+     
     private func makeItemName(for data: CompilationItemData) -> String? {
         switch data {
         case .text(let str): return str
@@ -269,16 +279,25 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         var content = cell.defaultContentConfiguration()
         content.text = item.name
+        content.textProperties.numberOfLines = 3
+
         if item.name == nil {
             switch item.content {
             case .link(let link):
                 content.text = link
             default: break
             }
+            content.textProperties.numberOfLines = 3
         }
+
         content.image = icon(for: item.content)
         cell.contentConfiguration = content
-        cell.accessoryType = .disclosureIndicator
+        cell.accessoryType = {
+            switch item.content {
+            case .text: return .none
+            default: return .disclosureIndicator
+            }
+        }()
         return cell
     }
     
@@ -319,8 +338,8 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
             items.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
             updateEmptyState()
-            compilation = Compilation(name: compilation.name, items: items)
-            update()
+            self.compilation = self.compilation.updated(items: self.items)
+            storage.update(compilation: self.compilation)
         }
     }
     
@@ -341,8 +360,8 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
             }
             let delete = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
                 self.items.remove(at: indexPath.row)
-                self.compilation = Compilation(name: self.compilation.name, items: self.items)
-                self.update()
+                self.compilation = self.compilation.updated(items: self.items)
+                self.storage.update(compilation: self.compilation)
                 self.tableView.deleteRows(at: [indexPath], with: .automatic)
                 self.updateEmptyState()
             }
@@ -360,11 +379,12 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
         }
         
         let delete = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completion in
-            self?.items.remove(at: indexPath.row)
-            self?.compilation = Compilation(name: self?.compilation.name ?? "", items: self?.items ?? [])
-            self?.update()
+            guard let self = self else { return }
+            self.items.remove(at: indexPath.row)
+            self.compilation = self.compilation.updated(items: self.items)
+            self.storage.update(compilation: self.compilation)
             tableView.deleteRows(at: [indexPath], with: .automatic)
-            self?.updateEmptyState()
+            self.updateEmptyState()
             completion(true)
         }
         
@@ -379,8 +399,8 @@ final class CompilationViewController: UIViewController, UITableViewDataSource, 
             guard let self else { return }
             let updated = CompilationItem(id: item.id, name: name, content: .link(link))
             self.items[indexPath.row] = updated
-            self.compilation = Compilation(name: self.compilation.name, items: self.items)
-            self.update()
+            self.compilation = self.compilation.updated(items: self.items)
+            self.storage.update(compilation: self.compilation)
             self.tableView.reloadRows(at: [indexPath], with: .automatic)
         }
 

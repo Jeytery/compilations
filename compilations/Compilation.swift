@@ -9,16 +9,22 @@ import Foundation
 import UIKit
 
 struct Compilation: Codable, Equatable, Identifiable {
+    internal init(name: String, items: [CompilationItem], id: UUID = UUID()) {
+        self.name = name
+        self.items = items
+        self.id = id
+    }
+    
     static func == (lhs: Compilation, rhs: Compilation) -> Bool {
         return lhs.id == rhs.id
     }
     
-    let id: UUID = UUID()
+    let id: UUID
     var name: String
     let items: [CompilationItem]
     
-    func updated(with items: [CompilationItem]) -> Compilation {
-        Compilation(name: name, items: items)
+    func updated(items: [CompilationItem]) -> Compilation {
+        Compilation(name: name, items: items, id: self.id)
     }
 }
 

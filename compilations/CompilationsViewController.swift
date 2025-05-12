@@ -22,7 +22,6 @@ final class CompilationsViewController: UIViewController {
     private var isSearching = false
     
     private let storage = UserDefaultsStorage()
-    private let storageKey = "group.com.jeytery.compilation"
     
     private let tableView = UITableView()
     private let searchController = UISearchController(searchResultsController: nil)
@@ -78,13 +77,13 @@ final class CompilationsViewController: UIViewController {
         NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         loadCompilations()
     }
 
     private func loadCompilations() {
-        switch storage.load(forKey: storageKey, as: [Compilation].self) {
+        switch storage.load() {
         case .success(let loaded):
             compilations = loaded
         case .failure:
@@ -99,7 +98,7 @@ final class CompilationsViewController: UIViewController {
     }
     
     private func saveCompilations() {
-        if let error = storage.save(compilations, forKey: storageKey) {
+        if let error = storage.save(compilations) {
             AlertKitAPI.present(
                 title: "Error",
                 subtitle: "Failed to save compilations.",
@@ -161,7 +160,7 @@ final class CompilationsViewController: UIViewController {
                   let newName = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !newName.isEmpty else { return }
             
-            if let i = self.compilations.firstIndex(where: { $0.name == model.name }) {
+            if let i = self.compilations.firstIndex(where: { $0.id == model.id }) {
                 self.compilations[i].name = newName
                 self.saveCompilations()
                 self.tableView.reloadRows(at: [IndexPath(row: i, section: 0)], with: .automatic)
@@ -205,7 +204,7 @@ extension CompilationsViewController: UITableViewDataSource, UITableViewDelegate
         let deleted = targetArray.remove(at: index)
         
         if !isSearching {
-            compilations.removeAll { $0.name == deleted.name }
+            compilations.removeAll { $0.id == deleted.id }
             saveCompilations()
         }
         

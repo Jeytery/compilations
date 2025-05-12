@@ -8,13 +8,41 @@
 import UIKit
 import Social
 import MobileCoreServices
+import Vision
+
+fileprivate func classifyImage(_ image: UIImage, completion: @escaping (String?) -> Void) {
+    guard let cgImage = image.cgImage else {
+        completion(nil)
+        return
+    }
+
+    let request = VNClassifyImageRequest { request, error in
+        if let results = request.results as? [VNClassificationObservation],
+           let best = results.first {
+            completion("\(best.identifier)")
+        } else {
+            completion(nil)
+        }
+    }
+
+    let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+    DispatchQueue.global(qos: .userInitiated).async {
+        do {
+            try handler.perform([request])
+        } catch {
+            completion(nil)
+        }
+    }
+}
 
 final class ShareViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
-    private let storageKey = "group.com.jeytery.compilation"
+    private let storageKey = "group.com.jeytery.compilations"
     private let storage = UserDefaultsStorage()
     private var compilations: [Compilation] = []
     private var sharedURL: String?
+    private var sharedImage: UIImage?
+    private var sharedText: String?
     
     private let tableView = UITableView(frame: .zero, style: .grouped)
     private let navBarHeight: CGFloat = 56
@@ -79,12 +107,26 @@ final class ShareViewController: UIViewController, UITableViewDataSource, UITabl
         extensionContext?.cancelRequest(withError: NSError(domain: "UserCanceled", code: 0, userInfo: nil))
     }
 
-
     private func loadSharedURL() {
         guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem else { return }
         guard let attachments = extensionItem.attachments else { return }
+
         for attachment in attachments {
-            if attachment.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
+            if attachment.hasItemConformingToTypeIdentifier(kUTTypeImage as String) {
+                attachment.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { [weak self] (data, _) in
+                    if let url = data as? URL, let imageData = try? Data(contentsOf: url), let image = UIImage(data: imageData) {
+                        self?.sharedImage = image
+                        DispatchQueue.main.async {
+                            self?.tableView.reloadData()
+                        }
+                    } else if let image = data as? UIImage {
+                        self?.sharedImage = image
+                        DispatchQueue.main.async {
+                            self?.tableView.reloadData()
+                        }
+                    }
+                }
+            } else if attachment.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
                 attachment.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { [weak self] (data, _) in
                     if let url = data as? URL {
                         self?.sharedURL = url.absoluteString
@@ -93,13 +135,21 @@ final class ShareViewController: UIViewController, UITableViewDataSource, UITabl
                         }
                     }
                 }
-                break
+            } else if attachment.hasItemConformingToTypeIdentifier(kUTTypeText as String) {
+                attachment.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { [weak self] (data, _) in
+                    if let text = data as? String {
+                        self?.sharedText = text
+                        DispatchQueue.main.async {
+                            self?.tableView.reloadData()
+                        }
+                    }
+                }
             }
         }
     }
 
     private func loadCompilations() {
-        switch storage.load(forKey: storageKey, as: [Compilation].self) {
+        switch storage.load() {
         case .success(let list):
             compilations = list
         case .failure:
@@ -133,16 +183,30 @@ final class ShareViewController: UIViewController, UITableViewDataSource, UITabl
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let url = sharedURL else { return }
-
         let selected = compilations[indexPath.row]
-        let updated = Compilation(name: selected.name, items: selected.items + [
-            CompilationItem(id: UUID(), name: nil, content: .link(url))
-        ])
+        var updatedItems = selected.items
+        if let image = sharedImage {
+            classifyImage(image, completion: { [weak self] text in
+                guard let self = self else { return }
+                updatedItems.append(CompilationItem(id: UUID(), name: text ?? "Unnamed picture", content: .image(image)))
+                let updated = selected.updated(items: updatedItems)
+                storage.update(compilation: updated)
+                extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
+            })
+            return
+        }
 
-        compilations.removeAll { $0.name == selected.name }
-        compilations.insert(updated, at: 0)
-        _ = storage.save(compilations, forKey: storageKey)
+        if let url = sharedURL {
+            updatedItems.append(CompilationItem(id: UUID(), name: nil, content: .link(url)))
+        }
+        
+        if let text = sharedText {
+            updatedItems.append(CompilationItem(id: UUID(), name: text, content: .text(text)))
+        }
+
+        let updated = selected.updated(items: updatedItems)
+
+        storage.update(compilation: updated)
 
         extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
     }
