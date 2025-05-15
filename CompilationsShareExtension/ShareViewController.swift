@@ -9,6 +9,7 @@ import UIKit
 import Social
 import MobileCoreServices
 import Vision
+import AlertKit
 
 fileprivate func classifyImage(_ image: UIImage, completion: @escaping (String?) -> Void) {
     guard let cgImage = image.cgImage else {
@@ -186,28 +187,29 @@ final class ShareViewController: UIViewController, UITableViewDataSource, UITabl
         let selected = compilations[indexPath.row]
         var updatedItems = selected.items
         if let image = sharedImage {
-            classifyImage(image, completion: { [weak self] text in
-                guard let self = self else { return }
-                updatedItems.append(CompilationItem(id: UUID(), name: text ?? "Unnamed picture", content: .image(image)))
-                let updated = selected.updated(items: updatedItems)
-                storage.update(compilation: updated)
-                extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
-            })
+            updatedItems.append(CompilationItem(id: UUID(), name: "Unnamed picture", content: .image(image)))
+            let updated = selected.updated(items: updatedItems)
+            storage.update(compilation: updated)
+            extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
             return
-        }
-
-        if let url = sharedURL {
+        } else if let url = sharedURL {
             updatedItems.append(CompilationItem(id: UUID(), name: nil, content: .link(url)))
-        }
-        
-        if let text = sharedText {
+        } else if let text = sharedText {
             updatedItems.append(CompilationItem(id: UUID(), name: text, content: .text(text)))
+        } else {
+            let label = UILabel()
+            label.text = "Data parse process failed"
+            label.textColor = .red
+            label.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            ])
+            view.addSubview(label)
+            return 
         }
-
         let updated = selected.updated(items: updatedItems)
-
         storage.update(compilation: updated)
-
         extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
     }
 }
