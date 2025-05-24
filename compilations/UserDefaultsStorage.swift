@@ -14,17 +14,21 @@ enum UserDefaultsStorageError: Error {
 }
 
 final class UserDefaultsStorage {
-    private let defaults = UserDefaults(suiteName: "group.com.jeytery.compilations")!
-    private let key = "group.com.jeytery.compilations"
-   
-    func load() -> Result<[Compilation], UserDefaultsStorageError> {
-        guard let data = defaults.data(forKey: key) else {
-            return .failure(.noData)
-        }
+    private let fileName = "compilations.json"
 
+    private var fileURL: URL {
+        let directory = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.jeytery.compilations")!
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory.appendingPathComponent(fileName)
+    }
+
+    func load() -> Result<[Compilation], UserDefaultsStorageError> {
         do {
+            let data = try Data(contentsOf: fileURL)
             let result = try JSONDecoder().decode([Compilation].self, from: data)
             return .success(result)
+        } catch let error as NSError where error.domain == NSCocoaErrorDomain && error.code == NSFileReadNoSuchFileError {
+            return .failure(.noData)
         } catch {
             return .failure(.decodeFailed)
         }
@@ -33,20 +37,21 @@ final class UserDefaultsStorage {
     func save(_ compilations: [Compilation]) -> UserDefaultsStorageError? {
         do {
             let data = try JSONEncoder().encode(compilations)
-            defaults.set(data, forKey: key)
+            try data.write(to: fileURL, options: .atomic)
             return nil
         } catch {
             return .encodeFailed
         }
     }
-    
+
     func update(compilation: Compilation) {
         switch load() {
-        case .success(let all):
-            var filtered = all.filter({ $0.id != compilation.id })
-            filtered.insert(compilation, at: 0)
-            _ = save(filtered)
-        case .failure(let error): break
+        case .success(var all):
+            all.removeAll { $0.id == compilation.id }
+            all.insert(compilation, at: 0)
+            _ = save(all)
+        case .failure:
+            _ = save([compilation])
         }
     }
 }

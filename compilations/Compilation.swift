@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import AlertKit
 
 struct Compilation: Codable, Equatable, Identifiable {
     internal init(name: String, items: [CompilationItem], id: UUID = UUID()) {
@@ -59,9 +60,10 @@ enum CompilationItemData: Codable {
             let value = try container.decode(String.self, forKey: .value)
             self = .link(value)
         case .image:
-            let data = try container.decode(Data.self, forKey: .value)
-            guard let image = UIImage(data: data) else {
-                throw DecodingError.dataCorruptedError(forKey: .value, in: container, debugDescription: "Invalid image data")
+            let dataString = try container.decode(String.self, forKey: .value)
+            guard let data = Data(base64Encoded: dataString),
+                  let image = UIImage(data: data) else {
+                throw DecodingError.dataCorruptedError(forKey: .value, in: container, debugDescription: "Invalid Base64 image data")
             }
             self = .image(image)
         case .text:
@@ -78,11 +80,13 @@ enum CompilationItemData: Codable {
             try container.encode(DataType.link, forKey: .type)
             try container.encode(value, forKey: .value)
         case .image(let image):
-            guard let data = image.jpegData(compressionQuality: 0.9) else {
-                throw EncodingError.invalidValue(image, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Failed to encode UIImage"))
+            if let data = image.pngData() {
+                let dataString = data.base64EncodedString()
+                try container.encode(DataType.image, forKey: .type)
+                try container.encode(dataString, forKey: .value)
+            } else {
+                throw EncodingError.invalidValue(image, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Failed to encode UIImage as PNG"))
             }
-            try container.encode(DataType.image, forKey: .type)
-            try container.encode(data, forKey: .value)
         case .text(let value):
             try container.encode(DataType.text, forKey: .type)
             try container.encode(value, forKey: .value)
